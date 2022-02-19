@@ -28,20 +28,20 @@ router.get('/:id', (req, res) => {
           res.status(404).json({ message: 'No user found with this id' });
           return;
         }
-        res.json(dbUserData);
-      })
-      .catch(err => {
-        console.log(err);
-        res.status(500).json(err);
-      });
-  });
+        const validPassword = dbUserData.checkPassword(req.body.password);
 
-// POST  api users
-router.post('/login', (req, res) => {
-    // expects {username: 'USERNAME', email: 'name@gmail.com', password: 'passcode12'} equal to  INSERT INTO users /VALUES
-  (username, email, password)
-  VALUES
-    ("Lernantino", "lernantino@gmail.com", "password1234");
+        if (!validPassword) {
+          res.status(400).json({ message: 'Incorrect password!' });
+          return;
+        }
+    
+        res.json({ user: dbUserData, message: 'You are now logged in!' });
+      });
+    });
+
+  router.post('/', (req, res) => {
+    // expects {username:'USERNAME', email: 'name@gmail.com', password: newpasscode12'"}
+
     User.create({
       username: req.body.username,
       email: req.body.email,
@@ -53,6 +53,31 @@ router.post('/login', (req, res) => {
         res.status(500).json(err);
       });
   });
+  
+
+// POST  api users
+router.post('/login', (req, res) => {
+  //expects {email: 'lernantino@gmail.com', password: 'password1234'}
+  User.findOne({
+    where: {
+      email: req.body.email
+    }
+  }).then(dbUserData => {
+    if (!dbUserData) {
+      res.status(400).json({ message: 'No user with that email address!' });
+      return;
+    }
+
+    const validPassword = dbUserData.checkPassword(req.body.password);
+
+    if (!validPassword) {
+      res.status(400).json({ message: 'Incorrect password!' });
+      return;
+    }
+
+    res.json({ user: dbUserData, message: 'Log in successful!' });
+  });
+});
 
 // PUT  api users/1
 router.put('/:id', (req, res) => {  User.update(req.body, {
